@@ -5,10 +5,21 @@ from cv_bridge import CvBridge
 from std_msgs.msg import Bool
 from std_msgs.msg import Int16
 
-flag_detect = False
+flag_detect = True
+i =0
+
 
 def img_to_cv(img):
     global flag_detect
+    global i
+
+    i = i + 1
+
+    if i % 30 == 0:
+        flag_detect = True
+    else:
+        flag_detect = False
+
     if flag_detect :   
         bridge=CvBridge()
 
@@ -16,7 +27,7 @@ def img_to_cv(img):
 
     	detect_face(cv_image)
 
-        flag_detect = False
+        #flag_detect = False
     else:
         pass
 
@@ -56,7 +67,7 @@ def detect_face(frame):
     number_of_females = 0
 
     for x,y,z,h in face:
-        #cv2.rectangle(my,(x,y),(x+z,y+h),(0,0,225),3)
+        cv2.rectangle(frame,(x,y),(x+z,y+h),(0,0,225),3)
 #print x
         faceimg = 0
 
@@ -74,23 +85,23 @@ def detect_face(frame):
         genderPreds = genderNet.forward()
         gender = genderList[genderPreds[0].argmax()]
         print("Gender : {}, conf = {:.3f}".format(gender, genderPreds[0].max()))
-    
-        if gender == "Male":
+
+        if gender == 'male':
             number_of_males = number_of_males + 1
         else:
             number_of_females = number_of_females + 1
 
-        #label = "{}".format(gender)
-        #cv2.putText(my, label, (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
+        label = "{}".format(gender)
+        cv2.putText(frame, label, (x,y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2, cv2.LINE_AA)
 
     faces_pub.publish(number_of_faces)
     male_pub.publish(number_of_males)
     female_pub.publish(number_of_females)
-#cv2.imshow("facedetective",my)
+    cv2.imshow("facedetective",frame)
 
-#cv2.waitKey(0)
+    key = cv2.waitKey(1)
 
-#cv2.destroyallWindows()
+    #cv2.destroyallWindows()
 
 def analyze(flag):
     global flag_detect
